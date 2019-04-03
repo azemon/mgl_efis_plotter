@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='mgl_efis_plotter',
-      version='0.1',
+      version='0.1.1',
       description='MGL EFIS data plotter',
       long_description='Plot and export flight data from the MGL iEFIS systems',
       classifiers=[
