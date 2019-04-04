@@ -1,13 +1,11 @@
-from .Flight import *
-from .Message import *
-from .MglPacketStream import *
 from .TimestampMap import *
 
 
-def createFlights(datafile: str, minTimestamp: int = 0, maxTimestamp: int = 9000000000) -> List[Flight]:
+def createFlights(datafile: str, config: Config, minTimestamp: int = 0, maxTimestamp: int = 9000000000) -> List[Flight]:
     """
     create a list of flights from an IEFISBB.DAT datafile
     :param datafile:
+    :param config:
     :param minTimestamp:
     :param maxTimestamp:
     :return: List[Flight]
@@ -20,12 +18,12 @@ def createFlights(datafile: str, minTimestamp: int = 0, maxTimestamp: int = 9000
 
     try:
         while True:
-            message = findMessage(packetStream)
-            flight = Flight(message)
+            message = findMessage(packetStream, config)
+            flight = Flight(message, config)
             try:
                 while True:
                     try:
-                        message = findMessage(packetStream)
+                        message = findMessage(packetStream, config)
                         flight.addMessage(message)
                     except NotAMessage as e:
                         pass

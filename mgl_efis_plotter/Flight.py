@@ -18,9 +18,13 @@ class Flight(object):
 
     earliestDateTime: datetime
 
-    NEWFLIGHTDELTA = Config.NewFlightDelta
+    config: Config
 
-    def __init__(self, message: Message):
+
+    def __init__(self, message: Message, config: Config):
+        self.config = config
+        self.NEWFLIGHTDELTA = self.config.NewFlightDelta
+
         self.earliestDateTime = None
 
         self.earliestTimestamp = message.timestamp

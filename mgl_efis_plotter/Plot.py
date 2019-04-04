@@ -16,11 +16,13 @@ class Plot(object):
 
     flight: Flight
     colors: cycler
+    config: Config
 
     def __init__(self, flight: Flight):
         self.flight = flight
+        self.config = self.flight.config
         self.colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
-    
+
     def data(self, attr: str) -> OrderedDict:
         return self.flight.getPlotData(attr)
 
@@ -35,18 +37,18 @@ class Plot(object):
         :param **kwargs: xlim, ylim
         :return:
         """
-        plt.figure(figsize=Config.plotDimensions, dpi=Config.plotDPI, constrained_layout=True)
+        plt.figure(figsize=self.config.plotDimensions, dpi=self.config.plotDPI, constrained_layout=True)
         data = self.data(attr)
         if self._isScalar(data[0]):
             df = pd.DataFrame(data.values(), columns=[attr])
-            df = df.rolling(Config.rollingWindow, min_periods=1).mean()
+            df = df.rolling(self.config.rollingWindow, min_periods=1).mean()
             y = df[attr]
         else:
             y = data.values()
         if label is None:
             label = attr
         plt.plot(data.keys(), y)
-        plt.ylabel(label, fontsize=Config.plotFontSize)
+        plt.ylabel(label, fontsize=self.config.plotFontSize)
             
         values = list(data.values())
         if isinstance(values[0], list):
@@ -76,7 +78,7 @@ class Plot(object):
 
         for i in range(0, len(attr)):
             if 0 == i:
-                fig, axis0 = plt.subplots(figsize=Config.plotDimensions, dpi=Config.plotDPI, constrained_layout=True)
+                fig, axis0 = plt.subplots(figsize=self.config.plotDimensions, dpi=self.config.plotDPI, constrained_layout=True)
                 axis = axis0
                 axis0.set_xlabel('Minutes')
                 if 'xlim' in kwargs.keys():
@@ -90,11 +92,11 @@ class Plot(object):
                 offset = 1 + ((i - 1) * 0.1)
                 axis.spines['right'].set_position(('axes', offset))
 
-            axis.set_ylabel(labels[i], color=self.colors[i], fontsize=Config.plotFontSize)
+            axis.set_ylabel(labels[i], color=self.colors[i], fontsize=self.config.plotFontSize)
             data = self.data(attr[i])
             if self._isScalar(data[0]):
                 df = pd.DataFrame(data.values())
-                df = df.rolling(Config.rollingWindow, min_periods=1).mean()
+                df = df.rolling(self.config.rollingWindow, min_periods=1).mean()
                 y = df.values.tolist()
             else:
                 y = data.values()
@@ -129,7 +131,7 @@ class Plot(object):
 
     def _addDecorations(self) -> None:
         plt.title(self.flight.title())
-        plt.xlabel('Minutes', fontsize=Config.plotFontSize)
+        plt.xlabel('Minutes', fontsize=self.config.plotFontSize)
     
     def _addLegend(self, qty: int):
         labels = ['#{}'.format(n) for n in range(1, qty+1)]

@@ -22,7 +22,11 @@ class Message(object):
     rawHeader: bytearray
     messageData: MessageData
 
-    def __init__(self, timestamp: int, length: int, packetStream: MglPacketStream):
+    config: Config
+
+    def __init__(self, timestamp: int, length: int, packetStream: MglPacketStream, config: Config):
+        self.config = config
+
         self.timestamp = timestamp
 
         self.totalBytes = 0
@@ -53,15 +57,15 @@ class Message(object):
         :return:
         """
         if PrimaryFlight.MESSAGETYPE == self.type:
-            self.messageData = PrimaryFlight(self.data)
+            self.messageData = PrimaryFlight(self.data, self.config)
         elif Gps.MESSAGETYPE == self.type:
-            self.messageData = Gps(self.data)
+            self.messageData = Gps(self.data, self.config)
         elif Attitude.MESSAGETYPE == self.type:
-            self.messageData = Attitude(self.data)
+            self.messageData = Attitude(self.data, self.config)
         elif EngineData.MESSAGETYPE == self.type:
-            self.messageData = EngineData(self.data)
+            self.messageData = EngineData(self.data, self.config)
         else:
-            self.messageData = MessageData(self.data)
+            self.messageData = MessageData(self.data, self.config)
 
     def verifyChecksum(self) -> None:
         buffer = self.rawHeader
@@ -78,10 +82,11 @@ class Message(object):
             return str(self.messageData)
 
 
-def findMessage(packetStream: MglPacketStream) -> Message:
+def findMessage(packetStream: MglPacketStream, config: Config) -> Message:
     """
     find the next valid message in the packet stream, checking for DLE STX LEN LENXOR
     :param packetStream:
+    :param config:
     :return: Message
     """
     while True:
@@ -91,12 +96,12 @@ def findMessage(packetStream: MglPacketStream) -> Message:
     (ste,) = struct.unpack('B', packetStream.read(1))
     if 0x5 == ste:
         packetStream.unread(ste)
-        return findMessage(packetStream)
+        return findMessage(packetStream, config)
     if 0x2 != ste:
-        return findMessage(packetStream)
+        return findMessage(packetStream, config)
     (length, lengthXor) = struct.unpack('BB', packetStream.read(2))
     if length != (lengthXor ^ 0xff):
-        return findMessage(packetStream)
+        return findMessage(packetStream, config)
 
-    message = Message(packetStream.timestamp, length, packetStream)
+    message = Message(packetStream.timestamp, length, packetStream, config)
     return message

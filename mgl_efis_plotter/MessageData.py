@@ -14,9 +14,12 @@ class MessageData(object):
     MESSAGETYPE = None
 
     rawData: bytearray
+    
+    config: Config
 
-    def __init__(self, buffer: bytearray):
+    def __init__(self, buffer: bytearray, config: Config):
         self.rawData = buffer
+        self.config = config
 
     def cToF(self, c) -> float:
         return (c * 9 / 5) + 32
@@ -65,8 +68,8 @@ class PrimaryFlight(MessageData):
 
     exception: Exception
 
-    def __init__(self, buffer: bytearray):
-        super().__init__(buffer)
+    def __init__(self, buffer: bytearray, config: Config):
+        super().__init__(buffer, config)
 
         bufferLen = len(buffer)
         if 32 < bufferLen:
@@ -84,14 +87,14 @@ class PrimaryFlight(MessageData):
         
         self._calculateDensityAltitude()
 
-        if 'knots' == Config.units['airspeed']:
+        if 'knots' == self.config.units['airspeed']:
             self.asi = self.kphToKnots(self.asi)
             self.tas = self.kphToKnots(self.tas)
         self.aoa /= 10
-        if 'hg' == Config.units['barometer']:
+        if 'hg' == self.config.units['barometer']:
             self.baro = self.millibarsToHg(self.baro)
             self.local = self.millibarsToHg(self.local)
-        if 'f' == Config.units['ambientTemperature']:
+        if 'f' == self.config.units['ambientTemperature']:
             self.oat = self.cToF(self.oat)
         try:
             self.dateTime = datetime.datetime(self.year + 2000, self.month, self.date, self.hour, self.minute,
@@ -141,8 +144,8 @@ class Gps(MessageData):
     longitudeDegrees: float
     groundSpeedKnots: float
 
-    def __init__(self, buffer: bytearray):
-        super().__init__(buffer)
+    def __init__(self, buffer: bytearray, config: Config):
+        super().__init__(buffer, config)
         (self.latitude, self.longitude,  # ii
          self.gpsAltitude, self.agl,  # ii
          self.northVelocity, self.eastVelocity, self.downVelocity,  # iii
@@ -154,7 +157,7 @@ class Gps(MessageData):
 
         self.latitude /= 180 / 1000
         self.longitude /= 180 / 1000
-        if 'knots' == Config.units['airspeed']:
+        if 'knots' == self.config.units['airspeed']:
             self.groundSpeed = self.kphToKnots(self.groundSpeed)
         self.trueTrack /= 10
 
@@ -186,8 +189,8 @@ class Attitude(MessageData):
     bankAngleDegrees: float
     yawAngleDegrees: float
 
-    def __init__(self, buffer: bytearray):
-        super().__init__(buffer)
+    def __init__(self, buffer: bytearray, config: Config):
+        super().__init__(buffer, config)
         (self.headingMag,  # H
          self.pitchAngle, self.bankAngle, self.yawAngle,  # hhh
          self.turnRate, self.slip,  # hh
@@ -240,8 +243,8 @@ class EngineData(MessageData):
     egt: List[float]
     cht: List[float]
 
-    def __init__(self, buffer: bytearray):
-        super().__init__(buffer)
+    def __init__(self, buffer: bytearray, config: Config):
+        super().__init__(buffer, config)
         format = 'bb bb HH HHH h hh hhhh HH HH hH '  # 40 bytes
         bufferLen = len(buffer)
         (self.engineNumber, self.engineType,  # bb
@@ -269,7 +272,7 @@ class EngineData(MessageData):
         :return:
         """
         qtyAssignedThermocouples = 0
-        for v in Config.thermocouples.values():
+        for v in self.config.thermocouples.values():
             if v is not None:
                 qtyAssignedThermocouples += 1
 
@@ -280,13 +283,13 @@ class EngineData(MessageData):
             egtChtTemp = struct.unpack_from(format, buffer, 40)
 
             for i in range(0, qtyAssignedThermocouples):
-                if 'cht' == Config.thermocouples[i + 1]:
+                if 'cht' == self.config.thermocouples[i + 1]:
                     self.cht.append(egtChtTemp[i])
-                elif 'egt' == Config.thermocouples[i + 1]:
+                elif 'egt' == self.config.thermocouples[i + 1]:
                     self.egt.append(egtChtTemp[i])
 
     def convertUnits(self):
-        if 'f' == Config.units['engineTemperature']:
+        if 'f' == self.config.units['engineTemperature']:
             self.coolantTemperature = self.cToF(self.coolantTemperature)
             self.oilTemperature1 = self.cToF(self.oilTemperature1)
             self.oilTemperature2 = self.cToF(self.oilTemperature2)
@@ -303,17 +306,17 @@ class EngineData(MessageData):
             for i in range(0, len(self.cht)):
                 self.cht[i] = self.cToF(self.cht[i])
 
-        if 'hg' == Config.units['barometer']:
+        if 'hg' == self.config.units['barometer']:
             self.ambientPressure = self.millibarsToHg(self.ambientPressure)
 
-        if 'hg' == Config.units['manifoldPressure']:
+        if 'hg' == self.config.units['manifoldPressure']:
             self.manifoldPressure = self.millibarsToHg(self.manifoldPressure)
 
-        if 'psi' == Config.units['oilPressure']:
+        if 'psi' == self.config.units['oilPressure']:
             self.oilPressure1 = self.millibarsToPsi(self.oilPressure1)
             self.oilPressure2 = self.millibarsToPsi(self.oilPressure2)
 
-        if 'gallons' == Config.units['fuel']:
+        if 'gallons' == self.config.units['fuel']:
             self.fuelFlow = self.litersToGallons(self.fuelFlow)
 
     def __str__(self):
