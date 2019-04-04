@@ -7,7 +7,7 @@ def readme():
 
 
 setup(name='mgl_efis_plotter',
-      version='0.1.2',
+      version='0.1.3',
       description='MGL EFIS data plotter',
       long_description=readme(),
       long_description_content_type="text/x-rst",

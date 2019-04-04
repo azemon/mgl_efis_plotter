@@ -26,10 +26,11 @@ class Config:
         12: None,
     }
 
-    plotDimensions = (12, 8)  # width & height in inches
-    plotDPI = 100  # dots per inch
-    plotFontSize = 14
-    rollingWindow = 16  # bigger numbers make smoother graphs; start with 16
+    plot_dimensions = (12, 8)  # width & height in inches
+    plot_dpi = 100  # dots per inch
+    plot_font_size = 14
+
+    rolling_window = 16  # bigger numbers make smoother graphs; start with 16
 
     # iEFIS seems to add about 260 seconds to the timestamp at the top of the hour
-    NewFlightDelta = 300
+    new_flight_delta = 300

@@ -1,5 +1,6 @@
 from .Flight import *
 
+
 class TimestampMap(dict):
     """
     map timestamps from the MGL iEFIS records to datetime values, using the real time clock (RTC) from the
@@ -12,10 +13,10 @@ class TimestampMap(dict):
         if item < self.minKey:
             raise KeyError
         if item in self.keys():
-            foundValue = super().__getitem__(item)
-            if foundValue is None:
+            found_value = super().__getitem__(item)
+            if found_value is None:
                 return self.__getitem__(item - 1)
-            self.lastValue = foundValue
+            self.lastValue = found_value
         return self.lastValue
 
     def __setitem__(self, key, value):
@@ -23,8 +24,8 @@ class TimestampMap(dict):
             self.minKey = key
         return super().__setitem__(key, value)
 
-    def buildFromFlights(self, flights: List[Flight]) -> None:
+    def build_from_flights(self, flights: List[Flight]) -> None:
         for flight in flights:
             for message in flight.messages:
-                if isinstance(message.messageData, PrimaryFlight):
-                    self[message.timestamp] = message.messageData.dateTime
+                if isinstance(message.message_data, PrimaryFlight):
+                    self[message.timestamp] = message.message_data.date_time

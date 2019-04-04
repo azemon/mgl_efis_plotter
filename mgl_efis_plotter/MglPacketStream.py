@@ -1,5 +1,5 @@
 import struct
-from typing import BinaryIO, List, Set
+from typing import BinaryIO, List
 
 from .Exceptions import *
 
@@ -31,36 +31,36 @@ class Record(object):
             raise EndOfRecord()
         remaining = len(self.buffer) - self.position
         if qty < remaining:
-            slice = self.buffer[self.position : self.position + qty]
+            buffer_slice = self.buffer[self.position: self.position + qty]
             self.position += qty
-            return slice
+            return buffer_slice
         else:
             self.eof = True
-            return self.buffer[self.position : ]
+            return self.buffer[self.position:]
 
 
 class MglPacketStream(object):
     """
     stream of packets (a/k/a records) sent from the MGL iEFIS and stored in IEFISBB.DAT
     """
-    filePointer: BinaryIO
+    filepointer: BinaryIO
     records: List[Record]
-    currentRecord: int
+    current_record: int
     eof: bool
-    unreadBuffer: bytearray
+    unread_buffer: bytearray
     timestamp: int
 
     RECORDSIZE = 512
 
-    def __init__(self, fp: BinaryIO, minTimestamp: int = 0, maxTimestamp: int = 9000000000):
+    def __init__(self, fp: BinaryIO, min_timestamp: int = 0, max_timestamp: int = 9000000000):
         self.records = []
-        self.currentRecord = 0
+        self.current_record = 0
         self.eof = False
-        self.unreadBuffer = bytearray(0)
+        self.unread_buffer = bytearray(0)
 
-        self.filePointer = fp
-        self.loadRecords(minTimestamp, maxTimestamp)
-        self.sortRecords()
+        self.filepointer = fp
+        self._load_records(min_timestamp, max_timestamp)
+        self._sort_records()
 
         # print('Record timestamps:')
         # lastTs = 0
@@ -69,25 +69,25 @@ class MglPacketStream(object):
         #     lastTs = record.timestamp
         # print('*' * 100)
 
-    def loadRecords(self, minTimestamp: int, maxTimestamp: int) -> None:
+    def _load_records(self, min_timestamp: int, max_timestamp: int) -> None:
         while True:
-            buffer = self.filePointer.read(self.RECORDSIZE)
+            buffer = self.filepointer.read(self.RECORDSIZE)
             if 0 == len(buffer):
                 return
             (timestamp, buf) = struct.unpack_from('I 508s', buffer)
-            if 0 != timestamp and timestamp >= minTimestamp and timestamp <= maxTimestamp:
+            if 0 != timestamp and (min_timestamp >= timestamp <= max_timestamp):
                 self.records.append(Record(timestamp, bytearray(buf)))
 
-    def sortRecords(self) -> None:
+    def _sort_records(self) -> None:
         """
         Reorder the records so that they are in ascending order, so that nothing else has to deal with a flight
         which wraps back to the beginning of the file
         :return:
         """
         for boundary in range(0, len(self.records) - 2):
-            if self.records[boundary].timestamp > self.records[boundary+1].timestamp:
-                a = self.records[boundary+1:]
-                b = self.records[:boundary+1]
+            if self.records[boundary].timestamp > self.records[boundary + 1].timestamp:
+                a = self.records[boundary + 1:]
+                b = self.records[:boundary + 1]
                 self.records = a + b
 
     def read(self, qty: int) -> bytearray:
@@ -100,36 +100,36 @@ class MglPacketStream(object):
         if self.eof:
             raise EndOfFile()
 
-        if 0 < len(self.unreadBuffer):
-            unreadBytes = min(len(self.unreadBuffer), qty)
-            buffer = self.unreadBuffer[:unreadBytes]
-            self.unreadBuffer = self.unreadBuffer[unreadBytes:]
+        if 0 < len(self.unread_buffer):
+            unread_bytes = min(len(self.unread_buffer), qty)
+            buffer = self.unread_buffer[:unread_bytes]
+            self.unread_buffer = self.unread_buffer[unread_bytes:]
             if len(buffer) == qty:
                 return buffer
         else:
             buffer = bytearray(0)
 
-        stillNeeded = qty - len(buffer)
-        if self.records[self.currentRecord].eof:
-            self.nextRecord()
-        buffer.extend(self.records[self.currentRecord].read(stillNeeded))
-        self.timestamp = self.records[self.currentRecord].timestamp
+        still_needed = qty - len(buffer)
+        if self.records[self.current_record].eof:
+            self._next_record()
+        buffer.extend(self.records[self.current_record].read(still_needed))
+        self.timestamp = self.records[self.current_record].timestamp
         if len(buffer) == qty:
             return buffer
         else:
-            self.nextRecord()
-            stillNeeded = qty - len(buffer)
-            buffer2 = self.read(stillNeeded)
+            self._next_record()
+            still_needed = qty - len(buffer)
+            buffer2 = self.read(still_needed)
             buffer.extend(buffer2)
             return buffer
 
-    def nextRecord(self) -> None:
+    def _next_record(self) -> None:
         """
         get another record
         :return:
         """
-        self.currentRecord += 1
-        if self.currentRecord >= len(self.records):
+        self.current_record += 1
+        if self.current_record >= len(self.records):
             self.eof = True
             raise EndOfFile()
 
@@ -140,4 +140,4 @@ class MglPacketStream(object):
         :return:
         """
         b = bytearray([buffer])
-        self.unreadBuffer.extend(b)
+        self.unread_buffer.extend(b)
