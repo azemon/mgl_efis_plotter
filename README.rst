@@ -4,7 +4,7 @@ MGL EFIS Plotter
 
 The MGL EFIS Plotter package parses the flight data logs from
 MGL EFIS products, such as the iEFIS.
-It can read both ``IEFISBB.DAT`` files and ``IEFISS.REC`` files.
+It can read both ``IEFISS.REC`` and ``IEFISBB.DAT`` files.
 
 The package is intended to be used inside a Jupyter Notebook
 to create graphs. It can also save subsets of the data as CSV files.
@@ -28,13 +28,10 @@ Jupyter Notebook cell:
     from mgl_efis_plotter import *
 
     config = Config()
-
     flights = create_flights('IEFIS.REC', config)
 
     p = Plot(flights[0])
-
     p.plot2(['pAltitude', 'densityAltitude', 'oat']).show()
-
 
 Author
 ------
@@ -43,12 +40,10 @@ Author
 | art@zemon.name
 | https://cheerfulcurmudgeon.com/
 
-Copyright and License
----------------------
+Copyright and MIT License
+-------------------------
 
 |copy| Copyright 2019 Art Zemon.
-
-"MIT License"
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

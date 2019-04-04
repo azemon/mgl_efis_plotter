@@ -75,7 +75,7 @@ class MglPacketStream(object):
             if 0 == len(buffer):
                 return
             (timestamp, buf) = struct.unpack_from('I 508s', buffer)
-            if 0 != timestamp and (min_timestamp >= timestamp <= max_timestamp):
+            if 0 != timestamp and (min_timestamp <= timestamp <= max_timestamp):
                 self.records.append(Record(timestamp, bytearray(buf)))
 
     def _sort_records(self) -> None:
