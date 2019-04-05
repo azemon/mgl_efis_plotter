@@ -7,12 +7,12 @@ def readme():
 
 
 setup(name='mgl_efis_plotter',
-      version='0.1.4',
+      version='0.2.0',
       description='MGL EFIS data plotter',
       long_description=readme(),
       long_description_content_type="text/x-rst",
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'Intended Audience :: End Users/Desktop',
           'License :: OSI Approved :: MIT License',
           'Programming Language :: Python :: 3.6',
