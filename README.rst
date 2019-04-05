@@ -23,6 +23,8 @@ Sample Usage
 
 Jupyter Notebook cell:
 
+.. literalinclude:: tests/test1.py
+
 .. code-block:: python
 
     from mgl_efis_plotter import *
@@ -32,6 +34,8 @@ Jupyter Notebook cell:
 
     p = Plot(flights[0])
     p.plot2(['pAltitude', 'densityAltitude', 'oat']).show()
+
+.. image:: tests/test1.png
 
 Author
 ------
