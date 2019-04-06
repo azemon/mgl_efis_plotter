@@ -182,6 +182,14 @@ class Flight(object):
         return self.timestamp_map[latest]
 
     def __str__(self):
+        t = 'Flight at {beginning} to {ending},   {qty:,d} messages'.format(
+            beginning=self._earliest_date_string(),
+            ending=self._latest_date_string(),
+            qty=len(self.messages),
+        )
+        return t
+
+    def _debug__str__(self):
         t = 'Flight at {beginning} to {ending}, {qty:5d} messages, timestamps {begin:,d} to {end:,d}'.format(
             beginning=self._earliest_date_string(),
             ending=self._latest_date_string(),
