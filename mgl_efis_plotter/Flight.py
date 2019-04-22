@@ -82,7 +82,7 @@ class Flight(object):
                     attributes.append(attribute)
                 elif ('cht' == attribute or 'egt' == attribute) and 0 != len(value) and attribute not in attributes:
                     attributes.append(attribute)
-                elif 'date_time' == attribute:
+                elif 'date_time' == attribute and attribute not in attributes:
                     attributes.append(attribute)
         attributes.sort()
         return attributes
